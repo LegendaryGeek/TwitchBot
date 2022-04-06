@@ -31,6 +31,7 @@ public class App {
 
   public static TwitchClient client;
   public static final String channel = "LegendaryGeekGaming";
+  public static final String channelID = "180306250";
   public static OAuth2Credential credential = new OAuth2Credential(
     "twitch",
     ""
@@ -129,7 +130,7 @@ public class App {
       .getEventHandler(SimpleEventHandler.class);
     client
       .getPubSub()
-      .listenForChannelPointsRedemptionEvents(credential, channel);
+      .listenForChannelPointsRedemptionEvents(credential, channelID);
     CommandHandler commandHandler = new CommandHandler(eventHandler);
     log.debug("Features registered");
   }
