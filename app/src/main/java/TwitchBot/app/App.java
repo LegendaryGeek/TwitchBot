@@ -18,6 +18,15 @@ import com.github.twitch4j.TwitchClient;
 import com.github.twitch4j.TwitchClientBuilder;
 import com.github.twitch4j.chat.TwitchChat;
 import com.github.twitch4j.chat.enums.TMIConnectionState;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.stream.JsonReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import net.sourceforge.jwbf.core.bots.WikiBot;
@@ -29,22 +38,44 @@ import org.slf4j.LoggerFactory;
 
 public class App {
 
+  private static Logger log;
   public static TwitchClient client;
+
   public static final String channel = "LegendaryGeekGaming";
   public static final String channelID = "180306250";
-  public static OAuth2Credential credential = new OAuth2Credential(
-    "twitch",
-    ""
-  );
-  private static Logger log;
-  private String clientSecret = "";
-  private String clientId = "";
-  private String oauthToken = "";
+
+  private static String clientSecret = "";
+  private static String clientId = "";
+  private static String oauthToken = "";
+
+  public static OAuth2Credential credential;
 
   // private static MediaWikiBot wiki;
 
   public static void main(String[] args) {
     log = LoggerFactory.getLogger("TwitchBot.app.App");
+    Gson gson = new Gson();
+    //App.class.getClassLoader().getResource("oauthTokens")
+    JsonElement json = null;
+    try {
+      json =
+        JsonParser.parseReader(
+          new FileReader(
+            App.class.getClassLoader().getResource("oauthTokens.json").getFile()
+          )
+        );
+    } catch (JsonIOException e) {
+      log.error("error parsing token json", e);
+    } catch (JsonSyntaxException e) {
+      log.error("token json syntax exception", e);
+    } catch (FileNotFoundException e) {
+      log.error("token json not found", e);
+    }
+    clientId = json.getAsJsonObject().get("clientid").getAsString();
+    clientSecret = json.getAsJsonObject().get("clientsecret").getAsString();
+    oauthToken = json.getAsJsonObject().get("oauthtoken").getAsString();
+
+    credential = new OAuth2Credential("twitch", oauthToken);
 
     // try {
     //   wiki =
@@ -58,8 +89,8 @@ public class App {
       TwitchClientBuilder
         .builder()
         //.withDefaultAuthToken(credential)
-        .withClientId(this.clientId)
-        .withClientSecret(this.clientSecret)
+        .withClientId(clientId)
+        .withClientSecret(clientSecret)
         .withEnableChat(true)
         .withEnableHelix(true)
         .withEnableTMI(true)
